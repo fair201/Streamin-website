@@ -1,0 +1,1388 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamin - Simplified Video Sharing</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eefdf5',
+                            100: '#d6fbc7',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            accent: '#00E676',
+                        },
+                        dark: {
+                            bg: '#0f0f0f',
+                            card: '#181818',
+                            hover: '#272727',
+                            border: '#303030'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Font Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); }
+        .dark ::-webkit-scrollbar-track { background: #0f0f0f; }
+        ::-webkit-scrollbar-thumb { background: #a8a8a8; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-dark-bg text-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="sticky top-0 z-40 bg-white/95 dark:bg-dark-bg/95 backdrop-blur-md border-b border-gray-200 dark:border-dark-border px-4 py-2.5 flex items-center justify-between gap-4">
+        <!-- Left: Logo & Sidebar Toggle -->
+        <div class="flex items-center gap-3">
+            <button id="sidebarToggleBtn" class="p-2 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-full transition" title="Toggle Sidebar">
+                <i data-lucide="menu" class="w-6 h-6"></i>
+            </button>
+            <a href="#" id="homeLogoLink" class="flex items-center gap-2 group">
+                <div class="bg-brand-500 group-hover:bg-brand-600 text-white p-2 rounded-xl shadow-lg shadow-brand-500/20 transition-all transform group-hover:scale-105">
+                    <i data-lucide="play" class="w-5 h-5 fill-current"></i>
+                </div>
+                <span class="font-bold text-xl tracking-tight text-gray-900 dark:text-white flex items-center">
+                    Stream<span class="text-brand-500">in</span>
+                </span>
+            </a>
+        </div>
+
+        <!-- Center: Search Bar -->
+        <div class="flex-1 max-w-2xl mx-2 md:mx-6">
+            <form id="searchForm" class="flex items-center">
+                <div class="relative w-full flex items-center">
+                    <input type="text" id="searchInput" placeholder="Search videos, channels, or tags..." 
+                        class="w-full bg-gray-100 dark:bg-[#121212] border border-gray-300 dark:border-dark-border focus:border-brand-500 dark:focus:border-brand-500 text-sm rounded-l-full py-2 px-4 focus:outline-none focus:ring-1 focus:ring-brand-500 transition-all dark:text-white">
+                    <button type="button" id="clearSearchBtn" class="hidden absolute right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <button type="submit" class="bg-gray-100 dark:bg-dark-hover hover:bg-gray-200 dark:hover:bg-gray-700 border border-l-0 border-gray-300 dark:border-dark-border px-5 py-2 rounded-r-full text-gray-600 dark:text-gray-300 transition">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                </button>
+            </form>
+        </div>
+
+        <!-- Right: Actions & User Account Controls -->
+        <div class="flex items-center gap-2 md:gap-3">
+            <button id="themeToggleBtn" class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-full transition" title="Toggle Dark/Light Mode">
+                <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-brand-400"></i>
+                <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+            </button>
+            
+            <button id="openUploadBtn" class="flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white px-3 md:px-4 py-2 rounded-full font-medium text-sm transition shadow-md shadow-brand-500/20 active:scale-95">
+                <i data-lucide="upload" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Upload</span>
+            </button>
+
+            <!-- Notifications Dropdown -->
+            <div class="relative">
+                <button id="notifBellBtn" class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-full transition relative">
+                    <i data-lucide="bell" class="w-5 h-5"></i>
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-500 rounded-full ring-2 ring-white dark:ring-dark-bg"></span>
+                </button>
+
+                <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border rounded-2xl shadow-xl z-50 overflow-hidden">
+                    <div class="px-4 py-3 border-b border-gray-200 dark:border-dark-border flex justify-between items-center">
+                        <span class="font-bold text-sm text-gray-900 dark:text-white">Notifications</span>
+                        <span class="text-xs text-brand-500 font-medium cursor-pointer hover:underline">Mark all read</span>
+                    </div>
+                    <div class="max-h-80 overflow-y-auto divide-y divide-gray-100 dark:divide-dark-border">
+                        <div class="p-3 hover:bg-gray-50 dark:hover:bg-dark-hover transition cursor-pointer flex gap-3">
+                            <div class="w-2 h-2 bg-brand-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                                <p class="text-xs text-gray-800 dark:text-gray-200 font-medium"><strong>CodeCraft</strong> uploaded: Modern JS Frameworks in 2026</p>
+                                <span class="text-[10px] text-gray-400">10 mins ago</span>
+                            </div>
+                        </div>
+                        <div class="p-3 hover:bg-gray-50 dark:hover:bg-dark-hover transition cursor-pointer flex gap-3">
+                            <div class="w-2 h-2 bg-brand-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <div>
+                                <p class="text-xs text-gray-800 dark:text-gray-200 font-medium"><strong>TechPulse</strong> liked your video!</p>
+                                <span class="text-[10px] text-gray-400">1 hour ago</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auth Buttons OR Profile Avatar Menu -->
+            <div id="authHeaderContainer">
+                <!-- Dynamically filled with Login button or User Avatar -->
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="flex flex-1 relative overflow-hidden">
+
+        <!-- SIDEBAR NAVIGATION -->
+        <aside id="sidebar" class="w-64 bg-white dark:bg-dark-bg border-r border-gray-200 dark:border-dark-border flex-shrink-0 flex flex-col justify-between transition-all duration-300 z-30 fixed md:static inset-y-0 left-0 -translate-x-full md:translate-x-0">
+            <div class="p-3 space-y-1 overflow-y-auto">
+                <button data-nav="home" class="nav-item active flex items-center gap-4 w-full px-4 py-2.5 rounded-xl text-sm font-medium transition text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-500/10">
+                    <i data-lucide="home" class="w-5 h-5"></i>
+                    <span>Home</span>
+                </button>
+                <button data-nav="trending" class="nav-item flex items-center gap-4 w-full px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-hover transition">
+                    <i data-lucide="flame" class="w-5 h-5"></i>
+                    <span>Trending</span>
+                </button>
+                <button data-nav="subscriptions" class="nav-item flex items-center gap-4 w-full px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-hover transition">
+                    <i data-lucide="tv" class="w-5 h-5"></i>
+                    <span>Subscriptions</span>
+                </button>
+
+                <hr class="my-3 border-gray-200 dark:border-dark-border">
+                
+                <div class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">My Account</div>
+                <button id="myChannelNavBtn" class="flex items-center gap-4 w-full px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-hover transition">
+                    <i data-lucide="user" class="w-5 h-5 text-brand-500"></i>
+                    <span>My Channel</span>
+                </button>
+                <button data-nav="history" class="nav-item flex items-center gap-4 w-full px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-hover transition">
+                    <i data-lucide="history" class="w-5 h-5"></i>
+                    <span>Watch History</span>
+                </button>
+                <button data-nav="liked" class="nav-item flex items-center gap-4 w-full px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-hover transition">
+                    <i data-lucide="thumbs-up" class="w-5 h-5"></i>
+                    <span>Liked Videos</span>
+                </button>
+                <button data-nav="saved" class="nav-item flex items-center gap-4 w-full px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-hover transition">
+                    <i data-lucide="bookmark" class="w-5 h-5"></i>
+                    <span>Saved Videos</span>
+                </button>
+
+                <hr class="my-3 border-gray-200 dark:border-dark-border">
+                <div class="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Subscribed Channels</div>
+                <div id="subscribedChannelsList" class="space-y-1 pt-1">
+                    <!-- Dynamic Subscriptions populated by JS -->
+                </div>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="p-4 border-t border-gray-200 dark:border-dark-border text-xs text-gray-500 dark:text-gray-400">
+                <p>&copy; 2026 Streamin Inc.</p>
+                <p class="mt-1 text-brand-500 font-medium">Custom Channels & Video Platform</p>
+            </div>
+        </aside>
+
+        <!-- Sidebar Overlay for Mobile -->
+        <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-20 hidden md:hidden"></div>
+
+        <!-- CONTENT AREA -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-6 transition-all" id="mainContent">
+            
+            <!-- Category Chips Filter (Home/Feed Mode) -->
+            <div id="categoryChipsContainer" class="flex items-center gap-2 overflow-x-auto pb-4 no-scrollbar mb-4">
+                <!-- Dynamic Chips populated by JS -->
+            </div>
+
+            <!-- Section Title / Status -->
+            <div id="feedTitle" class="text-xl font-bold mb-4 hidden dark:text-white flex items-center gap-2">
+                <!-- Title populated via JS -->
+            </div>
+
+            <!-- Video Grid Feed -->
+            <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <!-- Dynamic Video Cards Inserted Here -->
+            </div>
+
+            <!-- Empty Feed State -->
+            <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center">
+                <div class="bg-gray-100 dark:bg-dark-card p-6 rounded-full mb-4 text-brand-500">
+                    <i data-lucide="video-off" class="w-12 h-12"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200">No videos found</h3>
+                <p class="text-gray-500 dark:text-gray-400 text-sm max-w-md mt-1">Try exploring another category, searching for another keyword, or uploading a video!</p>
+                <button id="resetFilterBtn" class="mt-4 bg-brand-500 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-brand-600 transition">Show All Videos</button>
+            </div>
+
+            <!-- WATCH VIEW -->
+            <div id="watchView" class="hidden flex-col lg:flex-row gap-6">
+                <!-- Main Player & Video Details -->
+                <div class="flex-1">
+                    <div class="relative bg-black rounded-2xl overflow-hidden shadow-2xl aspect-video group">
+                        <video id="mainVideoPlayer" class="w-full h-full object-contain" controls poster="">
+                            <source src="" type="video/mp4">
+                            Your browser does not support HTML5 video playback.
+                        </video>
+                    </div>
+
+                    <div class="mt-4">
+                        <h1 id="watchTitle" class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Video Title</h1>
+                        
+                        <!-- Actions & Channel Bar -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-3 pb-4 border-b border-gray-200 dark:border-dark-border">
+                            <!-- Channel Info -->
+                            <div class="flex items-center gap-3">
+                                <img id="watchChannelAvatar" src="" alt="Avatar" class="w-11 h-11 rounded-full object-cover ring-2 ring-brand-500/30 cursor-pointer text-view-channel">
+                                <div>
+                                    <h3 id="watchChannelName" class="font-bold text-gray-900 dark:text-white hover:text-brand-500 cursor-pointer text-view-channel flex items-center gap-1">
+                                        Channel Name
+                                    </h3>
+                                    <p id="watchSubCount" class="text-xs text-gray-500 dark:text-gray-400">0 subscribers</p>
+                                </div>
+                                <button id="subscribeBtn" class="ml-2 bg-brand-500 hover:bg-brand-600 text-white font-medium text-sm px-5 py-2 rounded-full transition shadow-md shadow-brand-500/20 active:scale-95">
+                                    Subscribe
+                                </button>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <div class="flex items-center bg-gray-100 dark:bg-dark-card rounded-full p-1 border border-gray-200 dark:border-dark-border">
+                                    <button id="likeBtn" class="flex items-center gap-1.5 px-3.5 py-1.5 hover:bg-gray-200 dark:hover:bg-dark-hover rounded-l-full text-xs md:text-sm font-medium transition">
+                                        <i data-lucide="thumbs-up" class="w-4 h-4"></i>
+                                        <span id="watchLikes">0</span>
+                                    </button>
+                                    <div class="h-4 w-[1px] bg-gray-300 dark:bg-gray-700"></div>
+                                    <button id="dislikeBtn" class="flex items-center gap-1.5 px-3.5 py-1.5 hover:bg-gray-200 dark:hover:bg-dark-hover rounded-r-full text-xs md:text-sm font-medium transition">
+                                        <i data-lucide="thumbs-down" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+
+                                <button id="shareBtn" class="flex items-center gap-1.5 bg-gray-100 dark:bg-dark-card hover:bg-gray-200 dark:hover:bg-dark-hover px-4 py-2 rounded-full text-xs md:text-sm font-medium border border-gray-200 dark:border-dark-border transition">
+                                    <i data-lucide="share-2" class="w-4 h-4"></i>
+                                    <span>Share</span>
+                                </button>
+
+                                <button id="saveBookmarkBtn" class="flex items-center gap-1.5 bg-gray-100 dark:bg-dark-card hover:bg-gray-200 dark:hover:bg-dark-hover px-4 py-2 rounded-full text-xs md:text-sm font-medium border border-gray-200 dark:border-dark-border transition">
+                                    <i data-lucide="bookmark" class="w-4 h-4"></i>
+                                    <span>Save</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Video Description Box -->
+                        <div class="mt-4 bg-gray-100 dark:bg-dark-card rounded-2xl p-4 border border-gray-200/60 dark:border-dark-border text-sm">
+                            <div class="flex items-center gap-3 font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                                <span id="watchViews">0 views</span>
+                                <span>•</span>
+                                <span id="watchDate">Recently</span>
+                                <span id="watchCategory" class="ml-auto bg-brand-500/10 text-brand-500 px-2.5 py-0.5 rounded-full text-xs font-semibold">Category</span>
+                            </div>
+                            <p id="watchDescription" class="text-gray-600 dark:text-gray-300 whitespace-pre-line leading-relaxed line-clamp-2">
+                                Description...
+                            </p>
+                            <button id="toggleDescBtn" class="mt-2 text-xs font-bold text-brand-500 hover:text-brand-600 focus:outline-none">
+                                Show more
+                            </button>
+                        </div>
+
+                        <!-- Comments Section -->
+                        <div class="mt-8">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6"><span id="commentCount">0</span> Comments</h3>
+
+                            <!-- Comment Input Form -->
+                            <form id="commentForm" class="flex gap-3 mb-6">
+                                <img id="commentUserAvatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" class="w-10 h-10 rounded-full object-cover">
+                                <div class="flex-1">
+                                    <input type="text" id="commentInput" placeholder="Add a comment as your channel..." required
+                                        class="w-full bg-transparent border-b border-gray-300 dark:border-dark-border focus:border-brand-500 dark:focus:border-brand-500 py-2 focus:outline-none text-sm transition dark:text-white">
+                                    <div class="flex justify-end gap-2 mt-2">
+                                        <button type="button" id="cancelCommentBtn" class="px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 rounded-lg">Cancel</button>
+                                        <button type="submit" class="px-4 py-1.5 text-xs font-medium bg-brand-500 text-white rounded-full hover:bg-brand-600 transition shadow-sm">Comment</button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            <!-- Comment List -->
+                            <div id="commentsList" class="space-y-4">
+                                <!-- Dynamic comments -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Up Next / Related Videos -->
+                <div class="w-full lg:w-80 xl:w-96 flex-shrink-0">
+                    <h3 class="font-bold text-gray-900 dark:text-white mb-3 text-lg flex items-center justify-between">
+                        <span>Up Next</span>
+                        <span class="text-xs text-brand-500 font-medium">Autoplay ON</span>
+                    </h3>
+                    <div id="upNextList" class="space-y-3">
+                        <!-- Up next cards -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHANNEL PAGE VIEW (My Channel & Public Channels) -->
+            <div id="channelView" class="hidden flex-col gap-6">
+                <!-- Channel Banner -->
+                <div id="channelBanner" class="w-full h-44 sm:h-60 md:h-72 rounded-2xl bg-gradient-to-r from-brand-600 via-emerald-800 to-teal-900 relative overflow-hidden shadow-lg border border-gray-200 dark:border-dark-border">
+                    <img id="channelBannerImg" src="" class="w-full h-full object-cover hidden" alt="Banner">
+                    <div class="absolute inset-0 bg-black/20"></div>
+                </div>
+
+                <!-- Channel Header & Profile Info -->
+                <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 -mt-12 sm:-mt-16 px-4 relative z-10">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-end gap-4">
+                        <img id="channelAvatar" src="" class="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover ring-4 ring-white dark:ring-dark-bg shadow-xl bg-white dark:bg-dark-card">
+                        <div class="mt-2 sm:mt-0">
+                            <h1 id="channelName" class="text-2xl sm:text-3xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+                                Channel Name
+                                <i data-lucide="check-circle-2" class="w-5 h-5 text-brand-500 fill-brand-500/20"></i>
+                            </h1>
+                            <p id="channelHandle" class="text-sm font-medium text-gray-500 dark:text-gray-400 mt-0.5">@handle</p>
+                            <p id="channelStats" class="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-3">
+                                <span><strong id="channelSubCount" class="text-gray-800 dark:text-gray-200">0</strong> subscribers</span>
+                                <span>•</span>
+                                <span><strong id="channelVideoCount" class="text-gray-800 dark:text-gray-200">0</strong> videos</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Channel Page Actions -->
+                    <div id="channelActionContainer" class="w-full sm:w-auto">
+                        <!-- Dynamic Button (Edit Channel Profile OR Subscribe) -->
+                    </div>
+                </div>
+
+                <!-- Channel Tabs -->
+                <div class="border-b border-gray-200 dark:border-dark-border mt-4 flex items-center gap-8">
+                    <button id="tabVideosBtn" class="channel-tab active py-3 border-b-2 border-brand-500 font-bold text-sm text-brand-500 transition">Videos</button>
+                    <button id="tabAboutBtn" class="channel-tab py-3 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition">About</button>
+                    <button id="tabManageBtn" class="channel-tab py-3 border-b-2 border-transparent font-medium text-sm text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition hidden">Manage Content</button>
+                </div>
+
+                <!-- Tab Content: Videos -->
+                <div id="channelTabVideos">
+                    <div id="channelVideoGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                        <!-- Videos owned by channel -->
+                    </div>
+                </div>
+
+                <!-- Tab Content: About -->
+                <div id="channelTabAbout" class="hidden bg-white dark:bg-dark-card rounded-2xl p-6 border border-gray-200 dark:border-dark-border space-y-4 max-w-2xl">
+                    <h3 class="font-bold text-lg text-gray-900 dark:text-white">About this Channel</h3>
+                    <p id="channelBio" class="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-line leading-relaxed">No channel description provided.</p>
+                    <hr class="border-gray-200 dark:border-dark-border">
+                    <div class="grid grid-cols-2 gap-4 text-xs text-gray-500 dark:text-gray-400">
+                        <div>
+                            <span class="block font-medium text-gray-400">Joined</span>
+                            <span id="channelJoinedDate" class="text-sm font-semibold text-gray-800 dark:text-gray-200">Oct 2026</span>
+                        </div>
+                        <div>
+                            <span class="block font-medium text-gray-400">Gmail Contact</span>
+                            <span id="channelEmail" class="text-sm font-semibold text-gray-800 dark:text-gray-200">channel@gmail.com</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Content: Manage Videos (Channel Owner Only) -->
+                <div id="channelTabManage" class="hidden">
+                    <div class="bg-white dark:bg-dark-card rounded-2xl border border-gray-200 dark:border-dark-border overflow-hidden shadow-sm">
+                        <div class="px-6 py-4 border-b border-gray-200 dark:border-dark-border flex justify-between items-center">
+                            <h3 class="font-bold text-gray-900 dark:text-white">Your Uploaded Videos</h3>
+                            <button id="manageUploadQuickBtn" class="bg-brand-500 text-white text-xs px-3 py-1.5 rounded-lg font-medium hover:bg-brand-600 transition">+ New Video</button>
+                        </div>
+                        <div id="manageVideosTable" class="divide-y divide-gray-200 dark:divide-dark-border">
+                            <!-- Dynamic management rows -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- AUTH MODAL (LOGIN & REGISTER) -->
+    <div id="authModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border w-full max-w-md rounded-2xl shadow-2xl p-6 relative">
+            <button id="closeAuthModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <!-- Auth Form Header -->
+            <div class="flex items-center gap-2 mb-6">
+                <div class="bg-brand-500 text-white p-2 rounded-xl">
+                    <i data-lucide="play" class="w-5 h-5 fill-current"></i>
+                </div>
+                <h2 id="authModalTitle" class="text-xl font-bold text-gray-900 dark:text-white">Sign In to Streamin</h2>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Gmail Address</label>
+                    <input type="email" id="loginEmail" required placeholder="yourname@gmail.com" 
+                        class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-500 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Password</label>
+                    <input type="password" id="loginPassword" required placeholder="••••••••" 
+                        class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-500 dark:text-white">
+                </div>
+                <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold py-2.5 rounded-xl text-sm transition shadow-md shadow-brand-500/20 mt-2">
+                    Sign In
+                </button>
+                <p class="text-xs text-center text-gray-500 dark:text-gray-400 mt-4">
+                    Don't have a channel yet? 
+                    <button type="button" id="switchToRegisterBtn" class="text-brand-500 font-bold hover:underline">Create Channel</button>
+                </p>
+            </form>
+
+            <!-- REGISTER / CREATE CHANNEL FORM -->
+            <form id="registerForm" class="space-y-3 hidden">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Gmail Address (@gmail.com required)</label>
+                    <input type="email" id="regEmail" required placeholder="creator@gmail.com" 
+                        class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500 dark:text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Channel Name</label>
+                        <input type="text" id="regChannelName" required placeholder="e.g. GreenTech" 
+                            class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Username Handle</label>
+                        <input type="text" id="regUsername" required placeholder="greentech" 
+                            class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500 dark:text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Password</label>
+                    <input type="password" id="regPassword" required placeholder="••••••••" 
+                        class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Avatar Image URL (Optional)</label>
+                    <input type="url" id="regAvatarUrl" placeholder="https://images.unsplash.com/..." 
+                        class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500 dark:text-white">
+                </div>
+                <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-semibold py-2.5 rounded-xl text-sm transition shadow-md shadow-brand-500/20 mt-2">
+                    Create Channel & Login
+                </button>
+                <p class="text-xs text-center text-gray-500 dark:text-gray-400 mt-3">
+                    Already have an account? 
+                    <button type="button" id="switchToLoginBtn" class="text-brand-500 font-bold hover:underline">Sign In</button>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- EDIT PROFILE MODAL -->
+    <div id="editProfileModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border w-full max-w-lg rounded-2xl shadow-2xl p-6 relative">
+            <button id="closeEditProfileModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <i data-lucide="edit-3" class="w-5 h-5 text-brand-500"></i>
+                Customize Channel Profile
+            </h2>
+
+            <form id="editProfileForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Channel Name</label>
+                    <input type="text" id="editChannelName" required class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Channel Avatar Image URL</label>
+                    <input type="url" id="editAvatarUrl" class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Channel Banner Image URL</label>
+                    <input type="url" id="editBannerUrl" placeholder="https://images.unsplash.com/..." class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">About / Description</label>
+                    <textarea id="editBio" rows="3" class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500 dark:text-white" placeholder="Tell viewers about your channel..."></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" id="cancelEditProfileBtn" class="px-4 py-2 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-xl">Cancel</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-medium bg-brand-500 text-white rounded-xl hover:bg-brand-600 transition shadow-sm">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- UPLOAD VIDEO MODAL -->
+    <div id="uploadModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border w-full max-w-lg rounded-2xl shadow-2xl p-6 relative">
+            <button id="closeUploadModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <i data-lucide="video" class="w-5 h-5 text-brand-500"></i>
+                Upload Video to Your Channel
+            </h2>
+
+            <form id="uploadVideoForm" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Video Title</label>
+                    <input type="text" id="uploadTitle" required placeholder="e.g. My First Coding Vlog in 2026" 
+                        class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-500 dark:text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Category</label>
+                        <select id="uploadCategory" class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500 dark:text-white">
+                            <option value="Tech">Tech</option>
+                            <option value="Gaming">Gaming</option>
+                            <option value="Coding">Coding</option>
+                            <option value="Music">Music</option>
+                            <option value="Vlogs">Vlogs</option>
+                            <option value="Education">Education</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Duration (MM:SS)</label>
+                        <input type="text" id="uploadDuration" placeholder="10:30" required
+                            class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500 dark:text-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Video File URL (.mp4)</label>
+                    <input type="url" id="uploadVideoUrl" required placeholder="https://commondatastorage.googleapis.com/... or mp4 link" 
+                        class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500 dark:text-white">
+                    <p class="text-[10px] text-gray-400 mt-1">Preset sample link available automatically if left default.</p>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Thumbnail Image URL</label>
+                    <input type="url" id="uploadThumbnailUrl" placeholder="https://images.unsplash.com/..." 
+                        class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1">Description</label>
+                    <textarea id="uploadDescription" rows="3" required placeholder="Write a short description..." 
+                        class="w-full bg-gray-50 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-brand-500 dark:text-white"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" id="cancelUploadBtn" class="px-4 py-2 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-dark-hover rounded-xl">Cancel</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-medium bg-brand-500 text-white rounded-xl hover:bg-brand-600 transition shadow-md shadow-brand-500/20">Publish Video</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SHARE MODAL -->
+    <div id="shareModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-dark-card border border-gray-200 dark:border-dark-border w-full max-w-md rounded-2xl shadow-2xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="share-2" class="w-5 h-5 text-brand-500"></i>
+                    Share Video
+                </h3>
+                <button id="closeShareModalBtn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Copy video link to share with friends:</p>
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="shareUrlInput" readonly class="flex-1 bg-gray-100 dark:bg-dark-bg border border-gray-300 dark:border-dark-border rounded-xl px-3 py-2 text-xs text-gray-800 dark:text-gray-200 focus:outline-none">
+                <button id="copyShareUrlBtn" class="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-xl text-xs font-medium transition shadow-sm">
+                    Copy Link
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none">
+        <div class="bg-brand-500 p-1.5 rounded-full text-white">
+            <i data-lucide="check" class="w-4 h-4"></i>
+        </div>
+        <span id="toastMessage" class="text-xs font-semibold">Notification message</span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+      // TailWind Config
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: '#fef2f2',
+                100: '#ffe1e1',
+                500: '#ef4444',
+                600: '#dc2626',
+                700: '#b91c1c',
+              }
+            }
+          }
+        }
+      }
+    </script>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans min-h-screen antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- APP CONTAINER -->
+    <div id="app" class="flex flex-col min-h-screen">
+      <!-- Content dynamically rendered via JS -->
+    </div>
+
+    <script>
+      // --- PERSISTENT STORAGE KEYS & INITIAL STATES ---
+      const STORAGE_KEYS = {
+        VIDEOS: 'streamin_videos_v2',
+        CHANNELS: 'streamin_channels_v2',
+        CURRENT_USER: 'streamin_current_user_v2',
+        SUBSCRIPTIONS: 'streamin_subscriptions_v2',
+        WATCH_HISTORY: 'streamin_history_v2',
+        LIKED_VIDEOS: 'streamin_liked_v2'
+      };
+
+      // Helper to safely fetch storage or return default
+      function loadStorage(key, defaultValue) {
+        try {
+          const data = localStorage.getItem(key);
+          return data ? JSON.parse(data) : defaultValue;
+        } catch (e) {
+          console.error(`Failed loading ${key}:`, e);
+          return defaultValue;
+        }
+      }
+
+      function saveStorage(key, data) {
+        try {
+          localStorage.setItem(key, JSON.stringify(data));
+        } catch (e) {
+          console.error(`Failed saving ${key}:`, e);
+        }
+      }
+
+      // Initialize App Data (Empty defaults as requested)
+      let state = {
+        videos: loadStorage(STORAGE_KEYS.VIDEOS, []),
+        channels: loadStorage(STORAGE_KEYS.CHANNELS, []),
+        currentUser: loadStorage(STORAGE_KEYS.CURRENT_USER, null), // { id, name, handle, avatar, bio }
+        subscriptions: loadStorage(STORAGE_KEYS.SUBSCRIPTIONS, []), // Array of channel IDs
+        watchHistory: loadStorage(STORAGE_KEYS.WATCH_HISTORY, []), // Array of video IDs
+        likedVideos: loadStorage(STORAGE_KEYS.LIKED_VIDEOS, []), // Array of video IDs
+        
+        // Navigation & View State
+        currentView: 'home', // 'home', 'watch', 'channel', 'upload', 'history', 'liked', 'subscriptions'
+        selectedVideoId: null,
+        selectedChannelId: null,
+        activeCategory: 'All',
+        searchQuery: '',
+        sidebarOpen: true
+      };
+
+      // Helper for saving mutated state
+      function persistState() {
+        saveStorage(STORAGE_KEYS.VIDEOS, state.videos);
+        saveStorage(STORAGE_KEYS.CHANNELS, state.channels);
+        saveStorage(STORAGE_KEYS.CURRENT_USER, state.currentUser);
+        saveStorage(STORAGE_KEYS.SUBSCRIPTIONS, state.subscriptions);
+        saveStorage(STORAGE_KEYS.WATCH_HISTORY, state.watchHistory);
+        saveStorage(STORAGE_KEYS.LIKED_VIDEOS, state.likedVideos);
+      }
+
+      // --- CORE ACTIONS ---
+      function createChannel(name, handle, avatar, bio) {
+        const newChannel = {
+          id: 'ch_' + Date.now(),
+          name,
+          handle: handle.startsWith('@') ? handle : '@' + handle,
+          avatar: avatar || `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(name)}`,
+          bio: bio || 'No channel description provided.',
+          createdAt: new Date().toISOString()
+        };
+        state.channels.push(newChannel);
+        state.currentUser = newChannel;
+        persistState();
+        renderApp();
+      }
+
+      function addVideo(videoData) {
+        if (!state.currentUser) return;
+        const newVideo = {
+          id: 'vid_' + Date.now(),
+          title: videoData.title,
+          description: videoData.description,
+          url: videoData.url,
+          thumbnail: videoData.thumbnail || `https://placehold.co/1280x720/1f2937/ffffff?text=${encodeURIComponent(videoData.title)}`,
+          category: videoData.category || 'General',
+          channelId: state.currentUser.id,
+          channelName: state.currentUser.name,
+          channelAvatar: state.currentUser.avatar,
+          views: 0,
+          likes: 0,
+          createdAt: new Date().toISOString(),
+          comments: []
+        };
+        state.videos.unshift(newVideo);
+        persistState();
+        navigateTo('watch', newVideo.id);
+      }
+
+      function toggleSubscription(channelId) {
+        const idx = state.subscriptions.indexOf(channelId);
+        if (idx > -1) {
+          state.subscriptions.splice(idx, 1);
+        } else {
+          state.subscriptions.push(channelId);
+        }
+        persistState();
+        renderApp();
+      }
+
+      function toggleLike(videoId) {
+        const idx = state.likedVideos.indexOf(videoId);
+        const video = state.videos.find(v => v.id === videoId);
+        if (!video) return;
+
+        if (idx > -1) {
+          state.likedVideos.splice(idx, 1);
+          video.likes = Math.max(0, video.likes - 1);
+        } else {
+          state.likedVideos.push(videoId);
+          video.likes += 1;
+        }
+        persistState();
+        renderApp();
+      }
+
+      function addComment(videoId, text) {
+        const video = state.videos.find(v => v.id === videoId);
+        if (!video || !text.trim() || !state.currentUser) return;
+
+        video.comments.unshift({
+          id: 'cmt_' + Date.now(),
+          authorName: state.currentUser.name,
+          authorAvatar: state.currentUser.avatar,
+          authorHandle: state.currentUser.handle,
+          text: text.trim(),
+          createdAt: new Date().toISOString()
+        });
+        persistState();
+        renderApp();
+      }
+
+      function recordWatch(videoId) {
+        const video = state.videos.find(v => v.id === videoId);
+        if (video) {
+          video.views += 1;
+          if (!state.watchHistory.includes(videoId)) {
+            state.watchHistory.unshift(videoId);
+          } else {
+            state.watchHistory = state.watchHistory.filter(id => id !== videoId);
+            state.watchHistory.unshift(videoId);
+          }
+          persistState();
+        }
+      }
+
+      function navigateTo(view, param = null) {
+        state.currentView = view;
+        if (view === 'watch') {
+          state.selectedVideoId = param;
+          recordWatch(param);
+        } else if (view === 'channel') {
+          state.selectedChannelId = param;
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        renderApp();
+      }
+
+      // --- RENDERING VIEWS ---
+      function renderHeader() {
+        return `
+          <header class="sticky top-0 z-50 bg-gray-900/95 backdrop-blur border-b border-gray-800 px-4 py-2.5 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-4">
+              <button onclick="state.sidebarOpen = !state.sidebarOpen; renderApp();" class="p-2 hover:bg-gray-800 rounded-full text-gray-300">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+              </button>
+              <div onclick="navigateTo('home')" class="flex items-center gap-2 cursor-pointer select-none">
+                <div class="bg-brand-600 text-white p-1.5 rounded-xl">
+                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M10 15l5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 .61-.03 1.3-.1 2.1-.06.8-.15 1.43-.28 1.9-.24.87-.87 1.52-1.72 1.76-.47.13-1.1.22-1.9.28-.8.07-1.49.1-2.09.1L12 18.25c-.61 0-1.3-.03-2.1-.1-.8-.06-1.43-.15-1.9-.28-.87-.24-1.52-.89-1.76-1.76-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L6 12c0-.61.03-1.3.1-2.1.06-.8.15-1.43.28-1.9.24-.87.89-1.52 1.76-1.76.47-.13 1.1-.22 1.9-.28.8-.07 1.49-.1 2.09-.1L12 5.75c.61 0 1.3.03 2.1.1.8.06 1.43.15 1.9.28.85.24 1.48.89 1.72 1.76z"/></svg>
+                </div>
+                <span class="font-bold text-xl tracking-tight hidden sm:inline">Streamin</span>
+              </div>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="flex-1 max-w-2xl mx-2">
+              <div class="relative flex items-center">
+                <input 
+                  type="text" 
+                  placeholder="Search videos or creators..." 
+                  value="${state.searchQuery}"
+                  oninput="state.searchQuery = this.value; renderApp();"
+                  class="w-full bg-gray-800 border border-gray-700 focus:border-brand-500 text-sm rounded-full py-2 pl-4 pr-10 outline-none text-gray-200 placeholder-gray-500"
+                />
+                <button class="absolute right-3 text-gray-400 hover:text-gray-200">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Action Controls / Channel Profile -->
+            <div class="flex items-center gap-3">
+              ${state.currentUser ? `
+                <button onclick="navigateTo('upload')" class="flex items-center gap-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-4 py-2 rounded-full transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  <span class="hidden sm:inline">Upload</span>
+                </button>
+                <div onclick="navigateTo('channel', '${state.currentUser.id}')" class="flex items-center gap-2 cursor-pointer p-1 rounded-full hover:bg-gray-800">
+                  <img src="${state.currentUser.avatar}" class="w-8 h-8 rounded-full border border-gray-700 object-cover" alt="Profile"/>
+                </div>
+              ` : `
+                <button onclick="openCreateChannelModal()" class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-medium px-4 py-2 rounded-full transition">
+                  Create Channel
+                </button>
+              `}
+            </div>
+          </header>
+        `;
+      }
+
+      function renderSidebar() {
+        if (!state.sidebarOpen) return '';
+
+        const navItems = [
+          { id: 'home', label: 'Home', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>` },
+          { id: 'subscriptions', label: 'Subscriptions', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>` },
+          { id: 'history', label: 'History', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>` },
+          { id: 'liked', label: 'Liked Videos', icon: `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2"/></svg>` }
+        ];
+
+        // Filter subscribed channels
+        const subscribedChannelsList = state.channels.filter(ch => state.subscriptions.includes(ch.id));
+
+        return `
+          <aside class="w-64 bg-gray-900 border-r border-gray-800 shrink-0 p-3 flex flex-col gap-6 hidden md:block">
+            <div class="space-y-1">
+              ${navItems.map(item => `
+                <button 
+                  onclick="navigateTo('${item.id}')"
+                  class="w-full flex items-center gap-4 px-3 py-2.5 rounded-xl font-medium text-sm transition ${state.currentView === item.id ? 'bg-gray-800 text-brand-500' : 'text-gray-400 hover:bg-gray-800/60 hover:text-gray-200'}"
+                >
+                  ${item.icon}
+                  <span>${item.label}</span>
+                </button>
+              `).join('')}
+            </div>
+
+            <!-- Subscribed Creators List -->
+            <div class="border-t border-gray-800 pt-4">
+              <h3 class="px-3 text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Subscribed</h3>
+              ${subscribedChannelsList.length === 0 ? `
+                <p class="px-3 text-xs text-gray-500">No subscriptions yet.</p>
+              ` : `
+                <div class="space-y-1">
+                  ${subscribedChannelsList.map(ch => `
+                    <button 
+                      onclick="navigateTo('channel', '${ch.id}')"
+                      class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-400 hover:bg-gray-800 hover:text-gray-200 transition"
+                    >
+                      <img src="${ch.avatar}" class="w-6 h-6 rounded-full object-cover"/>
+                      <span class="truncate">${ch.name}</span>
+                    </button>
+                  `).join('')}
+                </div>
+              `}
+            </div>
+          </aside>
+        `;
+      }
+
+      function renderCategories() {
+        const categories = ['All', 'Gaming', 'Music', 'Tech', 'Education', 'Entertainment', 'Vlogs'];
+        return `
+          <div class="flex items-center gap-2 overflow-x-auto pb-4 scrollbar-none">
+            ${categories.map(cat => `
+              <button 
+                onclick="state.activeCategory = '${cat}'; renderApp();"
+                class="px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition ${state.activeCategory === cat ? 'bg-white text-gray-900 font-semibold' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}"
+              >
+                ${cat}
+              </button>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      function renderVideoCard(video) {
+        return `
+          <div class="group flex flex-col gap-2 cursor-pointer" onclick="navigateTo('watch', '${video.id}')">
+            <div class="relative aspect-video rounded-xl overflow-hidden bg-gray-800 border border-gray-800 group-hover:border-gray-700 transition">
+              <img src="${video.thumbnail}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" alt="${video.title}" />
+              <span class="absolute bottom-2 right-2 bg-black/80 px-1.5 py-0.5 rounded text-xs text-gray-300 font-mono">Video</span>
+            </div>
+            <div class="flex gap-3">
+              <img src="${video.channelAvatar}" class="w-9 h-9 rounded-full object-cover shrink-0 mt-0.5" alt="${video.channelName}"/>
+              <div class="flex flex-col min-w-0">
+                <h3 class="font-semibold text-sm text-gray-100 line-clamp-2 leading-snug group-hover:text-brand-500 transition">${video.title}</h3>
+                <span class="text-xs text-gray-400 mt-1 hover:text-gray-200" onclick="event.stopPropagation(); navigateTo('channel', '${video.channelId}')">${video.channelName}</span>
+                <div class="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
+                  <span>${video.views} views</span>
+                  <span>•</span>
+                  <span>${new Date(video.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderHomeView() {
+        let filteredVideos = state.videos;
+
+        if (state.activeCategory !== 'All') {
+          filteredVideos = filteredVideos.filter(v => v.category === state.activeCategory);
+        }
+
+        if (state.searchQuery.trim()) {
+          const q = state.searchQuery.toLowerCase();
+          filteredVideos = filteredVideos.filter(v => 
+            v.title.toLowerCase().includes(q) || 
+            v.description.toLowerCase().includes(q) ||
+            v.channelName.toLowerCase().includes(q)
+          );
+        }
+
+        if (filteredVideos.length === 0) {
+          return `
+            <div class="flex flex-col items-center justify-center py-20 text-center max-w-md mx-auto">
+              <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center text-gray-500 mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              </div>
+              <h2 class="text-xl font-bold text-gray-200 mb-2">No videos found</h2>
+              <p class="text-gray-400 text-sm mb-6">There are currently no videos matching your criteria. Be the first to create a channel and post a video!</p>
+              ${state.currentUser ? `
+                <button onclick="navigateTo('upload')" class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-6 py-2.5 rounded-full transition">Upload Video</button>
+              ` : `
+                <button onclick="openCreateChannelModal()" class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-6 py-2.5 rounded-full transition">Create Channel</button>
+              `}
+            </div>
+          `;
+        }
+
+        return `
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
+            ${filteredVideos.map(v => renderVideoCard(v)).join('')}
+          </div>
+        `;
+      }
+
+      function renderWatchView() {
+        const video = state.videos.find(v => v.id === state.selectedVideoId);
+        if (!video) {
+          return `<div class="p-8 text-center text-gray-400">Video not found. <button onclick="navigateTo('home')" class="text-brand-500 underline">Go Home</button></div>`;
+        }
+
+        const isLiked = state.likedVideos.includes(video.id);
+        const isSubscribed = state.subscriptions.includes(video.channelId);
+
+        return `
+          <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Main Content Area -->
+            <div class="flex-1">
+              <!-- Player Container -->
+              <div class="aspect-video bg-black rounded-2xl overflow-hidden border border-gray-800 relative">
+                ${video.url ? `
+                  <iframe src="${video.url}" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                ` : `
+                  <div class="w-full h-full flex flex-col items-center justify-center bg-gray-950 p-6 text-center">
+                    <svg class="w-16 h-16 text-gray-700 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <p class="text-gray-400 font-medium">${video.title}</p>
+                    <p class="text-xs text-gray-600 mt-1">Direct playback mock container</p>
+                  </div>
+                `}
+              </div>
+
+              <!-- Metadata & Title -->
+              <h1 class="text-xl font-bold text-gray-100 mt-4">${video.title}</h1>
+
+              <div class="flex flex-wrap items-center justify-between gap-4 py-3 border-b border-gray-800">
+                <div class="flex items-center gap-4">
+                  <div onclick="navigateTo('channel', '${video.channelId}')" class="flex items-center gap-3 cursor-pointer">
+                    <img src="${video.channelAvatar}" class="w-10 h-10 rounded-full object-cover"/>
+                    <div>
+                      <h3 class="font-semibold text-sm text-gray-200">${video.channelName}</h3>
+                      <p class="text-xs text-gray-400">Creator</p>
+                    </div>
+                  </div>
+                  <button 
+                    onclick="toggleSubscription('${video.channelId}')"
+                    class="ml-2 px-4 py-2 rounded-full text-sm font-semibold transition ${isSubscribed ? 'bg-gray-800 text-gray-200 hover:bg-gray-700' : 'bg-white text-gray-900 hover:bg-gray-200'}"
+                  >
+                    ${isSubscribed ? 'Subscribed' : 'Subscribe'}
+                  </button>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <button 
+                    onclick="toggleLike('${video.id}')"
+                    class="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition ${isLiked ? 'bg-brand-600 text-white' : 'bg-gray-800 text-gray-200 hover:bg-gray-700'}"
+                  >
+                    <svg class="w-4 h-4" fill="${isLiked ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2"/></svg>
+                    <span>${video.likes}</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Description Box -->
+              <div class="bg-gray-800/50 p-4 rounded-xl mt-4 border border-gray-800/80 text-sm">
+                <div class="flex gap-2 text-xs font-semibold text-gray-400 mb-1">
+                  <span>${video.views} views</span>
+                  <span>•</span>
+                  <span>${new Date(video.createdAt).toLocaleDateString()}</span>
+                  <span>•</span>
+                  <span class="text-brand-500">${video.category}</span>
+                </div>
+                <p class="text-gray-300 whitespace-pre-line leading-relaxed">${video.description || 'No description provided.'}</p>
+              </div>
+
+              <!-- Comments Section -->
+              <div class="mt-8">
+                <h2 class="text-lg font-bold text-gray-100 mb-4">${video.comments.length} Comments</h2>
+                
+                ${state.currentUser ? `
+                  <div class="flex gap-3 mb-6">
+                    <img src="${state.currentUser.avatar}" class="w-9 h-9 rounded-full object-cover shrink-0"/>
+                    <div class="flex-1 flex flex-col gap-2">
+                      <input 
+                        id="comment-input" 
+                        type="text" 
+                        placeholder="Add a comment..." 
+                        class="w-full bg-transparent border-b border-gray-700 focus:border-brand-500 text-sm py-1 outline-none text-gray-100 placeholder-gray-500"
+                        onkeydown="if(event.key === 'Enter') { addComment('${video.id}', this.value); this.value = ''; }"
+                      />
+                      <div class="flex justify-end">
+                        <button 
+                          onclick="const el = document.getElementById('comment-input'); addComment('${video.id}', el.value); el.value = '';"
+                          class="bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold px-4 py-2 rounded-full transition"
+                        >
+                          Comment
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ` : `
+                  <p class="text-sm text-gray-500 mb-6">Please <button onclick="openCreateChannelModal()" class="text-brand-500 underline">create a channel</button> to leave a comment.</p>
+                `}
+
+                <div class="space-y-4">
+                  ${video.comments.map(c => `
+                    <div class="flex gap-3">
+                      <img src="${c.authorAvatar}" class="w-8 h-8 rounded-full object-cover shrink-0"/>
+                      <div>
+                        <div class="flex items-center gap-2">
+                          <span class="text-xs font-bold text-gray-300">${c.authorName}</span>
+                          <span class="text-xs text-gray-500">${new Date(c.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <p class="text-sm text-gray-300 mt-1">${c.text}</p>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+
+            <!-- Up Next / Side List -->
+            <div class="w-full lg:w-80 shrink-0 space-y-4">
+              <h3 class="font-bold text-sm text-gray-300">Up Next</h3>
+              ${state.videos.filter(v => v.id !== video.id).map(v => `
+                <div class="flex gap-2 cursor-pointer group" onclick="navigateTo('watch', '${v.id}')">
+                  <div class="w-32 aspect-video rounded-lg overflow-hidden bg-gray-800 shrink-0">
+                    <img src="${v.thumbnail}" class="w-full h-full object-cover group-hover:scale-105 transition"/>
+                  </div>
+                  <div class="flex flex-col min-w-0">
+                    <h4 class="text-xs font-semibold text-gray-200 line-clamp-2 leading-tight group-hover:text-brand-500">${v.title}</h4>
+                    <span class="text-xs text-gray-400 mt-1">${v.channelName}</span>
+                    <span class="text-[10px] text-gray-500 mt-0.5">${v.views} views</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      function renderChannelView() {
+        const channel = state.channels.find(c => c.id === state.selectedChannelId);
+        if (!channel) {
+          return `<div class="p-8 text-center text-gray-400">Channel not found. <button onclick="navigateTo('home')" class="text-brand-500 underline">Go Home</button></div>`;
+        }
+
+        const channelVideos = state.videos.filter(v => v.channelId === channel.id);
+        const isSubscribed = state.subscriptions.includes(channel.id);
+
+        return `
+          <div class="max-w-5xl mx-auto">
+            <!-- Channel Header -->
+            <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6 border-b border-gray-800 pb-8 mb-8">
+              <img src="${channel.avatar}" class="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-2 border-gray-700 object-cover"/>
+              <div class="flex-1 text-center sm:text-left">
+                <h1 class="text-2xl font-bold text-gray-100">${channel.name}</h1>
+                <p class="text-sm text-gray-400 mt-1">${channel.handle}</p>
+                <p class="text-sm text-gray-300 mt-3 max-w-xl">${channel.bio}</p>
+                <div class="flex items-center justify-center sm:justify-start gap-4 mt-4 text-xs text-gray-400">
+                  <span>${channelVideos.length} Videos</span>
+                </div>
+              </div>
+              <div>
+                ${state.currentUser && state.currentUser.id === channel.id ? `
+                  <button onclick="navigateTo('upload')" class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-6 py-2.5 rounded-full transition">Upload Video</button>
+                ` : `
+                  <button 
+                    onclick="toggleSubscription('${channel.id}')"
+                    class="px-6 py-2.5 rounded-full text-sm font-semibold transition ${isSubscribed ? 'bg-gray-800 text-gray-200 hover:bg-gray-700' : 'bg-white text-gray-900 hover:bg-gray-200'}"
+                  >
+                    ${isSubscribed ? 'Subscribed' : 'Subscribe'}
+                  </button>
+                `}
+              </div>
+            </div>
+
+            <!-- Videos Grid -->
+            <h2 class="text-lg font-bold text-gray-100 mb-4">Uploaded Videos</h2>
+            ${channelVideos.length === 0 ? `
+              <p class="text-sm text-gray-500">This channel hasn't uploaded any videos yet.</p>
+            ` : `
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                ${channelVideos.map(v => renderVideoCard(v)).join('')}
+              </div>
+            `}
+          </div>
+        `;
+      }
+
+      function renderUploadView() {
+        if (!state.currentUser) {
+          return `
+            <div class="max-w-md mx-auto text-center py-12">
+              <h2 class="text-xl font-bold text-gray-200 mb-2">Create a Channel First</h2>
+              <p class="text-sm text-gray-400 mb-6">You need an active creator channel to upload content.</p>
+              <button onclick="openCreateChannelModal()" class="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-6 py-2.5 rounded-full transition">Create Channel</button>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="max-w-2xl mx-auto bg-gray-800/40 border border-gray-800 rounded-2xl p-6">
+            <h1 class="text-xl font-bold text-gray-100 mb-6">Upload New Video</h1>
+            <form onsubmit="handleUploadSubmit(event)" class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Title</label>
+                <input type="text" id="upload-title" required class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-gray-200 focus:border-brand-500 outline-none" placeholder="e.g., Building a React App"/>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Description</label>
+                <textarea id="upload-desc" rows="3" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-gray-200 focus:border-brand-500 outline-none" placeholder="Describe your video content..."></textarea>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Embed Video URL (YouTube Embed / Direct MP4 Link)</label>
+                <input type="url" id="upload-url" placeholder="https://www.youtube.com/embed/..." class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-gray-200 focus:border-brand-500 outline-none"/>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Thumbnail URL (Optional)</label>
+                <input type="url" id="upload-thumb" placeholder="https://images.unsplash.com/..." class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-gray-200 focus:border-brand-500 outline-none"/>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Category</label>
+                <select id="upload-cat" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-gray-200 focus:border-brand-500 outline-none">
+                  <option value="General">General</option>
+                  <option value="Gaming">Gaming</option>
+                  <option value="Music">Music</option>
+                  <option value="Tech">Tech</option>
+                  <option value="Education">Education</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Vlogs">Vlogs</option>
+                </select>
+              </div>
+
+              <div class="flex justify-end gap-3 pt-4">
+                <button type="button" onclick="navigateTo('home')" class="px-5 py-2.5 rounded-full text-sm font-semibold text-gray-400 hover:bg-gray-800">Cancel</button>
+                <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold px-6 py-2.5 rounded-full text-sm transition">Publish Video</button>
+              </div>
+            </form>
+          </div>
+        `;
+      }
+
+      function handleUploadSubmit(e) {
+        e.preventDefault();
+        const title = document.getElementById('upload-title').value;
+        const description = document.getElementById('upload-desc').value;
+        const url = document.getElementById('upload-url').value;
+        const thumbnail = document.getElementById('upload-thumb').value;
+        const category = document.getElementById('upload-cat').value;
+
+        addVideo({ title, description, url, thumbnail, category });
+      }
+
+      function renderSubscriptionsView() {
+        const subscribedVideos = state.videos.filter(v => state.subscriptions.includes(v.channelId));
+        return `
+          <div>
+            <h1 class="text-xl font-bold text-gray-100 mb-6">Subscriptions</h1>
+            ${subscribedVideos.length === 0 ? `
+              <p class="text-sm text-gray-500">No videos from your subscribed channels yet.</p>
+            ` : `
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                ${subscribedVideos.map(v => renderVideoCard(v)).join('')}
+              </div>
+            `}
+          </div>
+        `;
+      }
+
+      function renderHistoryView() {
+        const historyVideos = state.watchHistory
+          .map(id => state.videos.find(v => v.id === id))
+          .filter(Boolean);
+
+        return `
+          <div>
+            <h1 class="text-xl font-bold text-gray-100 mb-6">Watch History</h1>
+            ${historyVideos.length === 0 ? `
+              <p class="text-sm text-gray-500">You haven't watched any videos yet.</p>
+            ` : `
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                ${historyVideos.map(v => renderVideoCard(v)).join('')}
+              </div>
+            `}
+          </div>
+        `;
+      }
+
+      function renderLikedView() {
+        const liked = state.likedVideos
+          .map(id => state.videos.find(v => v.id === id))
+          .filter(Boolean);
+
+        return `
+          <div>
+            <h1 class="text-xl font-bold text-gray-100 mb-6">Liked Videos</h1>
+            ${liked.length === 0 ? `
+              <p class="text-sm text-gray-500">You haven't liked any videos yet.</p>
+            ` : `
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                ${liked.map(v => renderVideoCard(v)).join('')}
+              </div>
+            `}
+          </div>
+        `;
+      }
+
+      // --- MODAL & UI DIALOGS ---
+      function openCreateChannelModal() {
+        const modal = document.createElement('div');
+        modal.id = 'channel-modal';
+        modal.className = 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm';
+        modal.innerHTML = `
+          <div class="bg-gray-800 border border-gray-700 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+            <h2 class="text-xl font-bold text-gray-100 mb-4">Create Channel</h2>
+            <form onsubmit="handleChannelSubmit(event)" class="space-y-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Channel Name</label>
+                <input type="text" id="channel-name" required class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-gray-200 outline-none focus:border-brand-500" placeholder="e.g. Code Studio"/>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Handle</label>
+                <input type="text" id="channel-handle" required class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-gray-200 outline-none focus:border-brand-500" placeholder="@codestudio"/>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Bio / Description</label>
+                <textarea id="channel-bio" rows="2" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-sm text-gray-200 outline-none focus:border-brand-500" placeholder="Tell viewers about your channel..."></textarea>
+              </div>
+              <div class="flex justify-end gap-3 pt-2">
+                <button type="button" onclick="closeChannelModal()" class="px-4 py-2 text-sm text-gray-400 hover:bg-gray-700 rounded-full">Cancel</button>
+                <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white font-semibold text-sm px-5 py-2 rounded-full">Create</button>
+              </div>
+            </form>
+          </div>
+        `;
+        document.body.appendChild(modal);
+      }
+
+      function closeChannelModal() {
+        const modal = document.getElementById('channel-modal');
+        if (modal) modal.remove();
+      }
+
+      function handleChannelSubmit(e) {
+        e.preventDefault();
+        const name = document.getElementById('channel-name').value;
+        const handle = document.getElementById('channel-handle').value;
+        const bio = document.getElementById('channel-bio').value;
+        createChannel(name, handle, null, bio);
+        closeChannelModal();
+      }
+
+      // --- MAIN APP RENDER ---
+      function renderApp() {
+        const app = document.getElementById('app');
+
+        let mainContent = '';
+        switch(state.currentView) {
+          case 'watch':
+            mainContent = renderWatchView();
+            break;
+          case 'channel':
+            mainContent = renderChannelView();
+            break;
+          case 'upload':
+            mainContent = renderUploadView();
+            break;
+          case 'subscriptions':
+            mainContent = renderSubscriptionsView();
+            break;
+          case 'history':
+            mainContent = renderHistoryView();
+            break;
+          case 'liked':
+            mainContent = renderLikedView();
+            break;
+          case 'home':
+          default:
+            mainContent = `
+              ${renderCategories()}
+              ${renderHomeView()}
+            `;
+            break;
+        }
+
+        app.innerHTML = `
+          ${renderHeader()}
+          <div class="flex flex-1">
+            ${renderSidebar()}
+            <main class="flex-1 p-4 sm:p-6 min-w-0">
+              ${mainContent}
+            </main>
+          </div>
+        `;
+      }
+
+      // Initialize App
+      window.onload = function() {
+        renderApp();
+      };
+    </script>
+</body>
+</html>
